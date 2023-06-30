@@ -2,6 +2,8 @@
 from sys import argv
 import pygame
 
+FPS = 20
+
 def slurp_file(path: str) -> str:
     content = ''
     with open(path) as f:
@@ -34,7 +36,8 @@ if __name__ == '__main__':
                         [[s, '\n'] for s in slurp_file(filename).split('\n')],
                     [])),
                 [])))
-    
+
+        clock = pygame.time.Clock()
         pygame.font.init()
         background_colour = (255,255,255)
         (width, height) = (800, 600)
@@ -123,6 +126,7 @@ if __name__ == '__main__':
                         i = (i+1) % len(words)
                         if event.key == pygame.K_SPACE and i >= len(words):
                             running = False
+            clock.tick(FPS)
 
     else:
         print("USAGE: dictator.py <filename>")
