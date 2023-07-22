@@ -6,11 +6,12 @@ import time
 import pygame
 
 FPS = 30
+AUTOPLAY_SPEED = 10 # chars per min
 BLACK = (0, 0, 0)
 MIN_TOKEN_LENGTH = 5
 PARTICLE_COUNT = 100
-PARTICLE_SIZE = (10, 15)
-PARTICLE_VELOCITY = (500, 2000)
+PARTICLE_SIZE = (10, 15) # px
+PARTICLE_VELOCITY = (500, 2000) # px per second
 PARTICLE_COLOR = BLACK
 PARTICLE_FADE = 0.85
 
@@ -76,14 +77,18 @@ class Particle:
         self.s = s
         self.c = c
         self.fade = f
+        self.asleep = False
     
     def render(self, screen: pygame.Surface):
-        pygame.draw.rect(screen, self.c, (self.px - self.s/2.0, self.py - self.s/2.0, self.s, self.s))
+        if self.awake:
+            pygame.draw.rect(screen, self.c, (self.px - self.s/2.0, self.py - self.s/2.0, self.s, self.s))
     
-    def update(self):
-        self.s *= self.fade
-        self.px += self.vx * 1.0/FPS
-        self.py += self.vy * 1.0/FPS
+    def update(self, w: int, h: int):
+        self.awake = self.s >= 1 or 0 < self.px < w and 0 < self.py < h
+        if self.awake:
+            self.s *= self.fade
+            self.px += self.vx * 1.0/FPS
+            self.py += self.vy * 1.0/FPS
 
 def new_particles(px: int, py: int) -> list[Particle]:
     ps = []
