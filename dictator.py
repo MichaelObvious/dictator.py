@@ -1,9 +1,18 @@
 #!/usr/bin/python3
+import math
 from sys import argv
+import random
+import time
 import pygame
 
-FPS = 20
+FPS = 30
+BLACK = (0, 0, 0)
 MIN_TOKEN_LENGTH = 5
+PARTICLE_COUNT = 100
+PARTICLE_SIZE = (10, 15)
+PARTICLE_VELOCITY = (500, 2000)
+PARTICLE_COLOR = BLACK
+PARTICLE_FADE = 0.85
 
 def slurp_file(path: str) -> str:
     content = ''
@@ -57,7 +66,35 @@ def load_tokens(filepath: str) -> list[str]:
             j += 1
     
     return tokens
+
+class Particle:
+    def __init__(self, px, py, vx, vy, s, c, f) -> None:
+        self.px = px
+        self.py = py
+        self.vx = vx
+        self.vy = vy
+        self.s = s
+        self.c = c
+        self.fade = f
     
+    def render(self, screen: pygame.Surface):
+        pygame.draw.rect(screen, self.c, (self.px - self.s/2.0, self.py - self.s/2.0, self.s, self.s))
+    
+    def update(self):
+        self.s *= self.fade
+        self.px += self.vx * 1.0/FPS
+        self.py += self.vy * 1.0/FPS
+
+def new_particles(px: int, py: int) -> list[Particle]:
+    ps = []
+    for _ in range(PARTICLE_COUNT):
+        v = random.random() * (PARTICLE_VELOCITY[1]-PARTICLE_VELOCITY[0]) + PARTICLE_VELOCITY[0]
+        a = random.random() * math.pi * 2
+        vx = v * math.cos(a)
+        vy = v * math.sin(a)
+        s = random.random() * (PARTICLE_SIZE[1]-PARTICLE_SIZE[0]) + PARTICLE_SIZE[0]
+        ps.append(Particle(px, py, vx, vy, s, BLACK, PARTICLE_FADE))
+    return ps
 
 if __name__ == '__main__':
     if len(argv) >= 2:
@@ -76,6 +113,7 @@ if __name__ == '__main__':
         pygame.display.flip()
 
         i = 0
+        particles = []
 
         running = True
         while running:
@@ -83,8 +121,11 @@ if __name__ == '__main__':
             w = screen.get_width()
             h = screen.get_height()
             screen.fill(background_colour)
-            BLACK = (0, 0, 0)
             # drawing text
+            for p in particles:
+                p.render(screen)
+                p.update()
+            
             text = tokens[i]
             font = load_font("monospace", h//15, True, False)
             if text == '\n':
@@ -105,6 +146,7 @@ if __name__ == '__main__':
             pygame.display.update()
 
             # handling events/keystrokes
+            prev_i = i
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -162,6 +204,10 @@ if __name__ == '__main__':
                         i = (i+1) % len(tokens)
                         if event.key == pygame.K_SPACE and i >= len(tokens):
                             running = False
+                
+            if prev_i != i and tokens[i] == '\n':
+                particles.clear()
+                particles = new_particles(w//2, h//2)
             clock.tick(FPS)
 
     else:
