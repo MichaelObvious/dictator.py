@@ -6,9 +6,14 @@ import time
 import pygame
 
 FPS = 30
-AUTOPLAY_SPEED = 10 # chars per min
-BLACK = (0, 0, 0)
 MIN_TOKEN_LENGTH = 5
+
+AUTOPLAY_SPEED = 75 / 60 # chars per sec
+AUTOPLAY_NL_PAUSE = 3 #  sec
+AUTOPLAY_START_DELAY = 5 #sec
+
+BLACK = (0, 0, 0)
+
 PARTICLE_COUNT = 100
 PARTICLE_SIZE = (10, 15) # px
 PARTICLE_VELOCITY = (500, 2000) # px per second
@@ -77,7 +82,7 @@ class Particle:
         self.s = s
         self.c = c
         self.fade = f
-        self.asleep = False
+        self.awake = False
     
     def render(self, screen: pygame.Surface):
         if self.awake:
@@ -101,6 +106,9 @@ def new_particles(px: int, py: int) -> list[Particle]:
         ps.append(Particle(px, py, vx, vy, s, BLACK, PARTICLE_FADE))
     return ps
 
+def autoplay_calculate_time(x: str) -> float:
+    return len(x) / AUTOPLAY_SPEED
+
 if __name__ == '__main__':
     if len(argv) >= 2:
         filename = argv[1]
@@ -118,6 +126,9 @@ if __name__ == '__main__':
         pygame.display.flip()
 
         i = 0
+        autoplay = False
+        ap_last_time = time.time()
+        ap_wait_time = AUTOPLAY_START_DELAY + autoplay_calculate_time(tokens[i])
         particles = []
 
         running = True
@@ -129,7 +140,7 @@ if __name__ == '__main__':
             # drawing text
             for p in particles:
                 p.render(screen)
-                p.update()
+                p.update(w, h)
             
             text = tokens[i]
             font = load_font("monospace", h//15, True, False)
@@ -161,6 +172,10 @@ if __name__ == '__main__':
                     elif event.key == pygame.K_r:
                         tokens = load_tokens(filename)
                         i = min(i, len(tokens)-1)
+                    elif event.key == pygame.K_p:
+                        autoplay = not autoplay
+                        ap_last_time = time.time()
+                        ap_wait_time = AUTOPLAY_START_DELAY + autoplay_calculate_time(tokens[i])
                     elif event.key == pygame.K_TAB:
                         i = (i+10) % len(tokens)
                     elif event.key == pygame.K_BACKSPACE:
@@ -209,10 +224,21 @@ if __name__ == '__main__':
                         i = (i+1) % len(tokens)
                         if event.key == pygame.K_SPACE and i >= len(tokens):
                             running = False
-                
+            
+            if autoplay:
+                elapsed_time = time.time() - ap_last_time
+                if elapsed_time >= ap_wait_time or prev_i != i:
+                    i += 1
+                    if tokens[i] == '\n':
+                        ap_wait_time = AUTOPLAY_NL_PAUSE
+                    else:
+                        ap_wait_time = autoplay_calculate_time(tokens[i])
+                    ap_last_time = time.time()
+
             if prev_i != i and tokens[i] == '\n':
                 particles.clear()
                 particles = new_particles(w//2, h//2)
+            
             clock.tick(FPS)
 
     else:
