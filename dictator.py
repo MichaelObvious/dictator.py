@@ -3,6 +3,7 @@ from sys import argv
 import pygame
 
 FPS = 20
+MIN_TOKEN_LENGTH = 5
 
 def slurp_file(path: str) -> str:
     content = ''
@@ -24,40 +25,44 @@ def load_font(name: str, size: int, bold: bool, italic: bool):
         return fonts[key]
     fonts[key] = pygame.font.SysFont(name, size, bold, italic)
     return fonts[key]
+
+def load_tokens(filepath: str) -> list[str]:
+    # get all the 'words' in a file (splits text by spaces and newlines)
+    words = list(
+            filter(lambda s: len(s) > 0,
+                sum(
+                    map(lambda s: s.split(' '),
+                    sum(
+                        [[s, '\n'] for s in slurp_file(filepath).split('\n')],
+                    [])),
+                [])))
+    
+    # create a list of tokens, so that each token is at least MIN_TOKEN_LENGTH charachters long
+    j = 0
+    tokens = []
+    current_token = ""
+    while j < len(words):
+        first = True
+        while j < len(words) and words[j] != '\n' and len(current_token) < MIN_TOKEN_LENGTH:
+            if first:
+                first = False
+            else:
+                current_token += ' '
+            current_token += words[j]
+            j += 1
+        tokens.append(current_token)
+        current_token = ""
+        while j < len(words) and words[j] == '\n':
+            tokens.append(words[j])
+            j += 1
+    
+    return tokens
     
 
 if __name__ == '__main__':
     if len(argv) >= 2:
         filename = argv[1]
-
-        # get all the 'words' in a file (splits text by spaces and newlines)
-        words = list(
-            filter(lambda s: len(s) > 0,
-                sum(
-                    map(lambda s: s.split(' '),
-                    sum(
-                        [[s, '\n'] for s in slurp_file(filename).split('\n')],
-                    [])),
-                [])))
-        
-        # create a list of tokens, so that each token is at least 5 charachters long
-        j = 0
-        tokens = []
-        current_token = ""
-        while j < len(words):
-            first = True
-            while j < len(words) and words[j] != '\n' and len(current_token) < 5:
-                if first:
-                    first = False
-                else:
-                    current_token += ' '
-                current_token += words[j]
-                j += 1
-            tokens.append(current_token)
-            current_token = ""
-            while j < len(words) and words[j] == '\n':
-                tokens.append(words[j])
-                j += 1
+        tokens = load_tokens(filename)
 
         # pygame init
         clock = pygame.time.Clock()
@@ -104,8 +109,11 @@ if __name__ == '__main__':
                 if event.type == pygame.QUIT:
                     running = False
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
+                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
                         running = False
+                    elif event.key == pygame.K_r:
+                        tokens = load_tokens(filename)
+                        i = min(i, len(tokens)-1)
                     elif event.key == pygame.K_TAB:
                         i = (i+10) % len(tokens)
                     elif event.key == pygame.K_BACKSPACE:
