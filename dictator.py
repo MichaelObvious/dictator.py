@@ -36,6 +36,24 @@ if __name__ == '__main__':
                         [[s, '\n'] for s in slurp_file(filename).split('\n')],
                     [])),
                 [])))
+        
+        j = 0
+        tokens = []
+        current_token = ""
+        while j < len(words):
+            first = True
+            while j < len(words) and words[j] != '\n' and len(current_token) < 5:
+                if first:
+                    first = False
+                else:
+                    current_token += ' '
+                current_token += words[j]
+                j += 1
+            tokens.append(current_token)
+            current_token = ""
+            while j < len(words) and words[j] == '\n':
+                tokens.append(words[j])
+                j += 1
 
         clock = pygame.time.Clock()
         pygame.font.init()
@@ -56,15 +74,15 @@ if __name__ == '__main__':
             h = screen.get_height()
             screen.fill(background_colour)
             BLACK = (0, 0, 0)
-            text = words[i]
+            text = tokens[i]
             font = load_font("monospace", h//15, True, False)
             if text == '\n':
                 text = "a capo"
                 font = load_font("monospace", h//25, False, True)
             label = font.render(text, 10, BLACK)
             screen.blit(label, (w/2-label.get_width()/2, h/2-label.get_height()/2))
-            p = fprogress(words, i)
-            progress = f"{i+1}/{len(words)} ({p*100:.2f}%)"
+            p = fprogress(tokens, i)
+            progress = f"{i+1}/{len(tokens)} ({p*100:.2f}%)"
             progress_label = load_font("monospace", h//50, False, False).render(progress, 10, BLACK)
             padding = h//15
             screen.blit(progress_label, (w/2-progress_label.get_width()/2,h-progress_label.get_height()-padding))
@@ -79,52 +97,52 @@ if __name__ == '__main__':
                     if event.key == pygame.K_ESCAPE:
                         running = False
                     elif event.key == pygame.K_TAB:
-                        i = (i+10) % len(words)
+                        i = (i+10) % len(tokens)
                     elif event.key == pygame.K_BACKSPACE:
-                        i = (i-10) % len(words)
+                        i = (i-10) % len(tokens)
                     elif event.key == pygame.K_LEFT:
                         i = max(0, i-1)
                     elif event.key == pygame.K_0:
                         i = 0
                     elif event.key == pygame.K_1:
                         i = 0
-                        while fprogress(words, i) < 0.1:
+                        while fprogress(tokens, i) < 0.1:
                             i+=1
                     elif event.key == pygame.K_2:
-                        i = int(len(words)*0.1)
-                        while fprogress(words, i) < 0.2:
+                        i = int(len(tokens)*0.1)
+                        while fprogress(tokens, i) < 0.2:
                             i+=1
                     elif event.key == pygame.K_3:
-                        i = int(len(words)*0.15)
-                        while fprogress(words, i) < 0.3:
+                        i = int(len(tokens)*0.15)
+                        while fprogress(tokens, i) < 0.3:
                             i+=1
                     elif event.key == pygame.K_4:
-                        i = int(len(words)*0.2)
-                        while fprogress(words, i) < 0.4:
+                        i = int(len(tokens)*0.2)
+                        while fprogress(tokens, i) < 0.4:
                             i+=1
                     elif event.key == pygame.K_5:
-                        i = int(len(words)*0.25)
-                        while fprogress(words, i) < 0.5:
+                        i = int(len(tokens)*0.25)
+                        while fprogress(tokens, i) < 0.5:
                             i+=1
                     elif event.key == pygame.K_6:
-                        i = int(len(words)*0.35)
-                        while fprogress(words, i) < 0.6:
+                        i = int(len(tokens)*0.35)
+                        while fprogress(tokens, i) < 0.6:
                             i+=1
                     elif event.key == pygame.K_7:
-                        i = int(len(words)*0.45)
-                        while fprogress(words, i) < 0.7:
+                        i = int(len(tokens)*0.45)
+                        while fprogress(tokens, i) < 0.7:
                             i+=1
                     elif event.key == pygame.K_8:
-                        i = int(len(words)*0.55)
-                        while fprogress(words, i) < 0.8:
+                        i = int(len(tokens)*0.55)
+                        while fprogress(tokens, i) < 0.8:
                             i+=1
                     elif event.key == pygame.K_9:
-                        i = int(len(words)*0.65)
-                        while fprogress(words, i) < 0.9:
+                        i = int(len(tokens)*0.65)
+                        while fprogress(tokens, i) < 0.9:
                             i+=1
                     else:
-                        i = (i+1) % len(words)
-                        if event.key == pygame.K_SPACE and i >= len(words):
+                        i = (i+1) % len(tokens)
+                        if event.key == pygame.K_SPACE and i >= len(tokens):
                             running = False
             clock.tick(FPS)
 
