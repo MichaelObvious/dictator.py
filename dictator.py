@@ -10,13 +10,14 @@ def slurp_file(path: str) -> str:
         content = f.read()
     return content
 
-def fprogress(words: list[str], i: int) -> float:
-    written = words[:i+1]
+# gives a floating point number from 0 to 1 expressing the progress
+def fprogress(tokens: list[str], i: int) -> float:
+    written = tokens[:i+1]
     return float(
-        (len(''.join(written)) + len(written) - 1)) / float(len(''.join(words)) + len(words) - 1)
+        (len(''.join(written)) + len(written) - 1)) / float(len(''.join(tokens)) + len(tokens) - 1)
 
+#loading fonts with caching
 fonts = {}
-
 def load_font(name: str, size: int, bold: bool, italic: bool):
     key = f"{name}-{size}-{bold}-{italic}"
     if fonts.get(key) != None:
@@ -28,6 +29,8 @@ def load_font(name: str, size: int, bold: bool, italic: bool):
 if __name__ == '__main__':
     if len(argv) >= 2:
         filename = argv[1]
+
+        # get all the 'words' in a file (splits text by spaces and newlines)
         words = list(
             filter(lambda s: len(s) > 0,
                 sum(
@@ -37,6 +40,7 @@ if __name__ == '__main__':
                     [])),
                 [])))
         
+        # create a list of tokens, so that each token is at least 5 charachters long
         j = 0
         tokens = []
         current_token = ""
@@ -55,11 +59,11 @@ if __name__ == '__main__':
                 tokens.append(words[j])
                 j += 1
 
+        # pygame init
         clock = pygame.time.Clock()
         pygame.font.init()
         background_colour = (255,255,255)
         (width, height) = (800, 600)
-
         screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
         pygame.display.set_caption('dictator.py')
         screen.fill(background_colour)
@@ -70,10 +74,12 @@ if __name__ == '__main__':
 
         running = True
         while running:
+            # screen
             w = screen.get_width()
             h = screen.get_height()
             screen.fill(background_colour)
             BLACK = (0, 0, 0)
+            # drawing text
             text = tokens[i]
             font = load_font("monospace", h//15, True, False)
             if text == '\n':
@@ -81,15 +87,19 @@ if __name__ == '__main__':
                 font = load_font("monospace", h//25, False, True)
             label = font.render(text, 10, BLACK)
             screen.blit(label, (w/2-label.get_width()/2, h/2-label.get_height()/2))
+            # writing progress
             p = fprogress(tokens, i)
             progress = f"{i+1}/{len(tokens)} ({p*100:.2f}%)"
             progress_label = load_font("monospace", h//50, False, False).render(progress, 10, BLACK)
             padding = h//15
             screen.blit(progress_label, (w/2-progress_label.get_width()/2,h-progress_label.get_height()-padding))
+            # drawing progress bar
             bar_height = h//80
             pygame.draw.rect(screen, BLACK, (0, h-bar_height, w*p, bar_height))
+
             pygame.display.update()
 
+            # handling events/keystrokes
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
