@@ -12,13 +12,12 @@ AUTOPLAY_SPEED = 75 / 60 # chars per sec
 AUTOPLAY_NL_PAUSE = 3 #  sec
 AUTOPLAY_START_DELAY = 5 #sec
 
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
+BACKGROUND_COLOR = (255, 255, 255)
+FOREGROUND_COLOR = (0, 0, 0)
 
 PARTICLE_COUNT = 100
 PARTICLE_SIZE = (10, 15) # px
 PARTICLE_VELOCITY = (500, 2000) # px per second
-PARTICLE_COLOR = BLACK
 PARTICLE_FADE = 0.85
 
 def slurp_file(path: str) -> str:
@@ -107,7 +106,7 @@ def new_particles(px: int, py: int) -> list[Particle]:
     return ps
 
 def autoplay_calculate_time(x: str) -> float:
-    return len(x) / AUTOPLAY_SPEED
+    return (len(x) + 2) / AUTOPLAY_SPEED
 
 if __name__ == '__main__':
     if len(argv) >= 2:
@@ -117,11 +116,11 @@ if __name__ == '__main__':
         # pygame init
         clock = pygame.time.Clock()
         pygame.font.init()
-        background_colour, foreground_color = WHITE, BLACK
+        bg, fg = BACKGROUND_COLOR, FOREGROUND_COLOR
         (width, height) = (800, 600)
         screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
         pygame.display.set_caption('dictator.py')
-        screen.fill(background_colour)
+        screen.fill(bg)
 
         pygame.display.flip()
 
@@ -136,10 +135,10 @@ if __name__ == '__main__':
             # screen
             w = screen.get_width()
             h = screen.get_height()
-            screen.fill(background_colour)
+            screen.fill(bg)
             # drawing text
             for p in particles:
-                p.render(screen, foreground_color)
+                p.render(screen, fg)
                 p.update(w, h)
             
             text = tokens[i]
@@ -147,20 +146,20 @@ if __name__ == '__main__':
             if text == '\n':
                 text = "a capo"
                 font = load_font("monospace", h//25, False, True)
-            label = font.render(text, 10, foreground_color)
+            label = font.render(text, 10, fg)
             screen.blit(label, (w/2-label.get_width()/2, h/2-label.get_height()/2))
             # writing progress
             p = fprogress(tokens, i)
             progress = f"{i+1}/{len(tokens)} ({p*100:.2f}%)"
-            progress_label = load_font("monospace", h//50, False, False).render(progress, 10, foreground_color)
+            progress_label = load_font("monospace", h//50, False, False).render(progress, 10, fg)
             padding = h//15
             screen.blit(progress_label, (w/2-progress_label.get_width()/2,h-progress_label.get_height()-padding))
             # drawing progress bar
             bar_height = h//80
-            pygame.draw.rect(screen, foreground_color, (0, h-bar_height, w*p, bar_height))
+            pygame.draw.rect(screen, fg, (0, h-bar_height, w*p, bar_height))
             # drawing autoplay marker
             if autoplay:
-                autoplay_label = load_font("monospace", h//50, False, False).render("autoplay", 10, foreground_color)
+                autoplay_label = load_font("monospace", h//50, False, False).render("autoplay", 10, fg)
                 screen.blit(autoplay_label, (w/2-autoplay_label.get_width()/2,padding))
 
             pygame.display.update()
@@ -232,9 +231,9 @@ if __name__ == '__main__':
             if autoplay:
                 elapsed_time = time.time() - ap_last_time
                 if elapsed_time <= 1.0/AUTOPLAY_SPEED:
-                    foreground_color, background_colour = WHITE, BLACK
+                    fg, bg = BACKGROUND_COLOR, FOREGROUND_COLOR
                 else:
-                    foreground_color, background_colour = BLACK, WHITE
+                    fg, bg = FOREGROUND_COLOR, BACKGROUND_COLOR
                 if elapsed_time >= ap_wait_time or prev_i != i:
                     i += 1
                     if tokens[i] == '\n':
@@ -243,7 +242,7 @@ if __name__ == '__main__':
                         ap_wait_time = autoplay_calculate_time(tokens[i])
                     ap_last_time = time.time()
             else:
-                foreground_color, background_colour = BLACK, WHITE
+                fg, bg = FOREGROUND_COLOR, BACKGROUND_COLOR
 
             if prev_i != i and tokens[i] == '\n':
                 particles.clear()
