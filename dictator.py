@@ -52,6 +52,8 @@ def load_tokens(filepath: str) -> list[str]:
                     [])),
                 [])))
     
+    words = words[:-1] # remove last '\n' that does not belong to the file content
+    
     # create a list of tokens, so that each token is at least MIN_TOKEN_LENGTH charachters long
     j = 0
     tokens = []
@@ -71,6 +73,10 @@ def load_tokens(filepath: str) -> list[str]:
             tokens.append(words[j])
             j += 1
     
+    # in case of empty file
+    if len(tokens) == 0:
+        tokens.append(" ");
+
     return tokens
 
 class Particle:
@@ -109,29 +115,64 @@ def autoplay_calculate_time(x: str) -> float:
     return (len(x) + 2) / AUTOPLAY_SPEED
 
 if __name__ == '__main__':
+    filename = ""
+    tokens = []
+    file_open = False
     if len(argv) >= 2:
         filename = argv[1]
-        tokens = load_tokens(filename)
+        try:
+            tokens = load_tokens(filename)
+            file_open = True
+        except:
+            pass
 
-        # pygame init
-        clock = pygame.time.Clock()
-        pygame.font.init()
-        bg, fg = BACKGROUND_COLOR, FOREGROUND_COLOR
-        (width, height) = (800, 600)
-        screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
-        pygame.display.set_caption('dictator.py')
-        screen.fill(bg)
+    # pygame init
+    clock = pygame.time.Clock()
+    pygame.font.init()
+    bg, fg = BACKGROUND_COLOR, FOREGROUND_COLOR
+    (width, height) = (800, 600)
+    screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+    pygame.display.set_caption('dictator.py')
+    screen.fill(bg)
 
-        pygame.display.flip()
+    pygame.display.flip()
 
-        i = 0
-        autoplay = False
-        ap_last_time = time.time()
-        ap_wait_time = AUTOPLAY_START_DELAY + autoplay_calculate_time(tokens[i])
-        particles = []
+    i = 0
+    autoplay = False
+    ap_last_time = time.time()
+    ap_wait_time = 0
+    particles = []
 
-        running = True
-        while running:
+    running = True
+    while running:
+        if not file_open:
+            w = screen.get_width()
+            h = screen.get_height()
+            screen.fill(bg)
+
+            text = "drop a file"
+            font = load_font("monospace", h//25, False, False)
+            label = font.render(text, 10, fg)
+            screen.blit(label, (w/2-label.get_width()/2, h/2-label.get_height()/2))
+
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                        running = False
+                elif event.type == pygame.DROPFILE:
+                    f = event.file
+                    try:
+                        tokens = load_tokens(f)
+                        filename = f
+                        file_open = True
+                    except:
+                        file_open = False
+                        
+        else:
             # screen
             w = screen.get_width()
             h = screen.get_height()
@@ -144,7 +185,7 @@ if __name__ == '__main__':
             text = tokens[i]
             font = load_font("monospace", h//15, True, False)
             if text == '\n':
-                text = "a capo"
+                text = "new paragraph"
                 font = load_font("monospace", h//25, False, True)
             label = font.render(text, 10, fg)
             screen.blit(label, (w/2-label.get_width()/2, h/2-label.get_height()/2))
@@ -169,7 +210,7 @@ if __name__ == '__main__':
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                if event.type == pygame.KEYDOWN:
+                elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
                         running = False
                     elif event.key == pygame.K_r:
@@ -227,6 +268,14 @@ if __name__ == '__main__':
                         i = (i+1) % len(tokens)
                         if event.key == pygame.K_SPACE and i >= len(tokens):
                             running = False
+                elif event.type == pygame.DROPFILE:
+                    f = event.file
+                    try:
+                        tokens = load_tokens(f)
+                        filename = f
+                        file_open = True
+                    except:
+                        file_open = False
             
             if autoplay:
                 elapsed_time = time.time() - ap_last_time
@@ -250,8 +299,5 @@ if __name__ == '__main__':
             if prev_i != i and tokens[i] == '\n':
                 particles.clear()
                 particles = new_particles(w//2, h//2)
-            
-            clock.tick(FPS)
-
-    else:
-        print("USAGE: dictator.py <filename>")
+        
+        clock.tick(FPS)
