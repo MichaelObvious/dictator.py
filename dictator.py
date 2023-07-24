@@ -235,12 +235,15 @@ if __name__ == '__main__':
                 else:
                     fg, bg = FOREGROUND_COLOR, BACKGROUND_COLOR
                 if elapsed_time >= ap_wait_time or prev_i != i:
-                    i += 1
-                    if tokens[i] == '\n':
-                        ap_wait_time = AUTOPLAY_NL_PAUSE
+                    if i < len(tokens) - 1:
+                        i += 1
+                        if tokens[i] == '\n':
+                            ap_wait_time = AUTOPLAY_NL_PAUSE
+                        else:
+                            ap_wait_time = autoplay_calculate_time(tokens[i])
+                        ap_last_time = time.time()
                     else:
-                        ap_wait_time = autoplay_calculate_time(tokens[i])
-                    ap_last_time = time.time()
+                        autoplay = False
             else:
                 fg, bg = FOREGROUND_COLOR, BACKGROUND_COLOR
 
