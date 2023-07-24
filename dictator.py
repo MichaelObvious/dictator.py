@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 import math
-from sys import argv
+import os
 import random
+from sys import argv
 import time
 import pygame
 
@@ -127,14 +128,14 @@ def draw_error(screen: pygame.Surface, t: float, w: int, h: int):
 
 
 if __name__ == '__main__':
-    filename = ""
+    filepath = ""
     tokens = []
     file_open = False
     error_time = 0
     if len(argv) >= 2:
-        filename = argv[1]
+        filepath = argv[1]
         try:
-            tokens = load_tokens(filename)
+            tokens = load_tokens(filepath)
             file_open = True
         except:
             error_time = time.time()
@@ -182,7 +183,7 @@ if __name__ == '__main__':
                     f = event.file
                     try:
                         tokens = load_tokens(f)
-                        filename = f
+                        filepath = f
                         file_open = True
                     except:
                         error_time = time.time()
@@ -210,6 +211,11 @@ if __name__ == '__main__':
             progress_label = load_font("monospace", h//50, False, False).render(progress, 10, fg)
             padding = h//15
             screen.blit(progress_label, (w/2-progress_label.get_width()/2,h-progress_label.get_height()-padding))
+            # writing filename
+            filename = os.path.basename(filepath)
+            filename_label = load_font("monospace", h//75, False, False).render(filepath, 10, fg)
+            padding = h//15
+            screen.blit(filename_label, (w/2-filename_label.get_width()/2,h-progress_label.get_height()- 1.25*padding-filename_label.get_height()))
             # drawing progress bar
             bar_height = h//80
             pygame.draw.rect(screen, fg, (0, h-bar_height, w*p, bar_height))
@@ -231,7 +237,7 @@ if __name__ == '__main__':
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
                         running = False
                     elif event.key == pygame.K_r:
-                        tokens = load_tokens(filename)
+                        tokens = load_tokens(filepath)
                         i = min(i, len(tokens)-1)
                     elif event.key == pygame.K_p:
                         autoplay = not autoplay
@@ -289,7 +295,7 @@ if __name__ == '__main__':
                     f = event.file
                     try:
                         tokens = load_tokens(f)
-                        filename = f
+                        filepath = f
                         file_open = True
                     except:
                         error_time = time.time()
