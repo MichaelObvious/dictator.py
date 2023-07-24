@@ -14,6 +14,7 @@ AUTOPLAY_START_DELAY = 5 #sec
 
 BACKGROUND_COLOR = (255, 255, 255)
 FOREGROUND_COLOR = (0, 0, 0)
+ERROR_COLOR = (144,6,3)
 
 PARTICLE_COUNT = 100
 PARTICLE_SIZE = (10, 15) # px
@@ -114,17 +115,29 @@ def new_particles(px: int, py: int) -> list[Particle]:
 def autoplay_calculate_time(x: str) -> float:
     return (len(x) + 2) / AUTOPLAY_SPEED
 
+def draw_error(screen: pygame.Surface, t: float, w: int, h: int):
+    x = time.time() - t
+    alpha = 255 / ((1 + x)**3)
+    color = (ERROR_COLOR[0], ERROR_COLOR[1], ERROR_COLOR[2], alpha)
+    rect = (0, 0, w, h)
+    if alpha >= 1:
+        shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
+        pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
+        screen.blit(shape_surf, rect)
+
+
 if __name__ == '__main__':
     filename = ""
     tokens = []
     file_open = False
+    error_time = 0
     if len(argv) >= 2:
         filename = argv[1]
         try:
             tokens = load_tokens(filename)
             file_open = True
         except:
-            pass
+            error_time = time.time()
 
     # pygame init
     clock = pygame.time.Clock()
@@ -155,6 +168,8 @@ if __name__ == '__main__':
             label = font.render(text, 10, fg)
             screen.blit(label, (w/2-label.get_width()/2, h/2-label.get_height()/2))
 
+            draw_error(screen, error_time, w, h)
+
             pygame.display.update()
 
             for event in pygame.event.get():
@@ -170,7 +185,7 @@ if __name__ == '__main__':
                         filename = f
                         file_open = True
                     except:
-                        file_open = False
+                        error_time = time.time()
                         
         else:
             # screen
@@ -202,6 +217,8 @@ if __name__ == '__main__':
             if autoplay:
                 autoplay_label = load_font("monospace", h//50, False, False).render("autoplay", 10, fg)
                 screen.blit(autoplay_label, (w/2-autoplay_label.get_width()/2,padding))
+            
+            draw_error(screen, error_time, w, h)
 
             pygame.display.update()
 
@@ -275,7 +292,7 @@ if __name__ == '__main__':
                         filename = f
                         file_open = True
                     except:
-                        file_open = False
+                        error_time = time.time()
             
             if autoplay:
                 elapsed_time = time.time() - ap_last_time
