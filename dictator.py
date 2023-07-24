@@ -212,8 +212,8 @@ if __name__ == '__main__':
             padding = h//15
             screen.blit(progress_label, (w/2-progress_label.get_width()/2,h-progress_label.get_height()-padding))
             # writing filename
-            filename = os.path.basename(filepath)
-            filename_label = load_font("monospace", h//75, False, False).render(filepath, 10, fg)
+            filename = os.path.basename(os.path.abspath(filepath))
+            filename_label = load_font("monospace", h//75, False, False).render(filename, 10, fg)
             padding = h//15
             screen.blit(filename_label, (w/2-filename_label.get_width()/2,h-progress_label.get_height()- 1.25*padding-filename_label.get_height()))
             # drawing progress bar
