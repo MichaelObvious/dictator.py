@@ -129,10 +129,7 @@ def new_particles(px: int, py: int) -> list[Particle]:
     return ps
 
 def autoplay_calculate_time(x: str) -> float:
-    if x == '\n':
-        return AUTOPLAY_NL_PAUSE
-    else:
-        return (len(x) + 2) / AUTOPLAY_SPEED
+    return AUTOPLAY_NL_PAUSE if x == '\n' else (len(x) + 2) / AUTOPLAY_SPEED
 
 def draw_error(screen: pygame.Surface, t: float, w: int, h: int):
     x = time.time() - t
