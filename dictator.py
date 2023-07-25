@@ -34,6 +34,21 @@ def fprogress(tokens: list[str], i: int) -> float:
     return float(
         (len(''.join(written)) + len(written) - 1)) / float(len(''.join(tokens)) + len(tokens) - 1)
 
+# calculate autoplay remaining time
+def remaining_time(tokens: list[str], i: int, ap_wait_time: float, ap_last_time: float) -> str:
+    total = 0 # seconds
+    to_write = tokens[i+1:]
+    for t in to_write:
+        total += autoplay_calculate_time(t)
+    total += ap_wait_time - (time.time() - ap_last_time)
+
+    hours = int(total / (60 * 60))
+    # minutes = int((total / 60)) % 60
+    minutes = round((total / 60) + 0.5) % 60 # rounding up!
+    # seconds = int(total % 60)
+    # return f"{hours:02}h {minutes:02}m {seconds:02}s"
+    return f"{hours:02}h {minutes:02}m"
+
 #loading fonts with caching
 fonts = {}
 def load_font(name: str, size: int, bold: bool, italic: bool):
@@ -223,6 +238,8 @@ if __name__ == '__main__':
             if autoplay:
                 autoplay_label = load_font("monospace", h//50, False, False).render("autoplay", 10, fg)
                 screen.blit(autoplay_label, (w/2-autoplay_label.get_width()/2,padding))
+                remaining_time_label = load_font("monospace", h//75, False, False).render(remaining_time(tokens, i, ap_wait_time, ap_last_time), 10, fg)
+                screen.blit(remaining_time_label, (w/2-remaining_time_label.get_width()/2,padding*1.25 + autoplay_label.get_height()))
             
             draw_error(screen, error_time, w, h)
 
