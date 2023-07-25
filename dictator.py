@@ -256,7 +256,7 @@ if __name__ == '__main__':
                     elif event.key == pygame.K_r:
                         tokens = load_tokens(filepath)
                         i = min(i, len(tokens)-1)
-                    elif event.key == pygame.K_p:
+                    elif event.key == pygame.K_SPACE:
                         autoplay = not autoplay
                         ap_last_time = time.time()
                         ap_wait_time = AUTOPLAY_START_DELAY + autoplay_calculate_time(tokens[i])
@@ -306,8 +306,6 @@ if __name__ == '__main__':
                             i+=1
                     else:
                         i = (i+1) % len(tokens)
-                        if event.key == pygame.K_SPACE and i >= len(tokens):
-                            running = False
                 elif event.type == pygame.DROPFILE:
                     f = event.file
                     try:
