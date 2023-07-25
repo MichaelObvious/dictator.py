@@ -129,7 +129,10 @@ def new_particles(px: int, py: int) -> list[Particle]:
     return ps
 
 def autoplay_calculate_time(x: str) -> float:
-    return (len(x) + 2) / AUTOPLAY_SPEED
+    if x == '\n':
+        return AUTOPLAY_NL_PAUSE
+    else:
+        return (len(x) + 2) / AUTOPLAY_SPEED
 
 def draw_error(screen: pygame.Surface, t: float, w: int, h: int):
     x = time.time() - t
@@ -325,10 +328,7 @@ if __name__ == '__main__':
                     i += 1
                 if prev_i != i:
                     if i < len(tokens) - 1:
-                        if tokens[i] == '\n':
-                            ap_wait_time = AUTOPLAY_NL_PAUSE
-                        else:
-                            ap_wait_time = autoplay_calculate_time(tokens[i])
+                        ap_wait_time = autoplay_calculate_time(tokens[i])
                         ap_last_time = time.time()
                     else:
                         autoplay = False
