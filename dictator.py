@@ -9,7 +9,7 @@ import pygame
 FPS = 30
 MIN_TOKEN_LENGTH = 5
 
-AUTOPLAY_SPEED = 75 / 60 # chars per sec
+AUTOPLAY_SPEED = 90 / 60 # chars per sec
 AUTOPLAY_NL_PAUSE = 3 #  sec
 AUTOPLAY_START_DELAY = 5 #sec
 
@@ -306,9 +306,10 @@ if __name__ == '__main__':
                     fg, bg = BACKGROUND_COLOR, FOREGROUND_COLOR
                 else:
                     fg, bg = FOREGROUND_COLOR, BACKGROUND_COLOR
-                if elapsed_time >= ap_wait_time or prev_i != i:
+                if elapsed_time >= ap_wait_time:
+                    i += 1
+                if prev_i != i:
                     if i < len(tokens) - 1:
-                        i += 1
                         if tokens[i] == '\n':
                             ap_wait_time = AUTOPLAY_NL_PAUSE
                         else:
@@ -316,6 +317,7 @@ if __name__ == '__main__':
                         ap_last_time = time.time()
                     else:
                         autoplay = False
+
             else:
                 fg, bg = FOREGROUND_COLOR, BACKGROUND_COLOR
 
