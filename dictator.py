@@ -9,9 +9,10 @@ import pygame
 FPS = 30
 MIN_TOKEN_LENGTH = 5
 
-AUTOPLAY_SPEED = 90 / 60 # chars per sec
+AUTOPLAY_SPEED = 80 / 60 # chars per sec
 AUTOPLAY_NL_PAUSE = 3 #  sec
 AUTOPLAY_START_DELAY = 5 #sec
+SHOW_SECS = False
 
 BACKGROUND_COLOR = (255, 255, 255)
 FOREGROUND_COLOR = (0, 0, 0)
@@ -42,12 +43,16 @@ def remaining_time(tokens: list[str], i: int, ap_wait_time: float, ap_last_time:
         total += autoplay_calculate_time(t)
     total += ap_wait_time - (time.time() - ap_last_time)
 
-    hours = int(total / (60 * 60))
-    # minutes = int((total / 60)) % 60
-    minutes = round((total / 60) + 0.5) % 60 # rounding up!
-    # seconds = int(total % 60)
-    # return f"{hours:02}h {minutes:02}m {seconds:02}s"
-    return f"{hours:02}h {minutes:02}m"
+    if not SHOW_SECS:
+        total *= 1.1
+        hours = int(total / (60 * 60))
+        minutes = round((total / 60) + 0.5) % 60 # rounding up!
+        return f"{hours:02}h {minutes:02}m"
+    else:
+        hours = int(total / (60 * 60))
+        minutes = int((total / 60)) % 60
+        seconds = int(total % 60)
+        return f"{hours:02}h {minutes:02}m {seconds:02}s"
 
 #loading fonts with caching
 fonts = {}
