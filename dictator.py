@@ -9,7 +9,8 @@ import pygame
 FPS = 30
 MIN_TOKEN_LENGTH = 5
 
-AUTOPLAY_SPEED = 80 / 60 # chars per sec
+per_minute_to_per_sec = lambda x: x/60.0
+AUTOPLAY_SPEED = 80 # chars per min
 AUTOPLAY_NL_PAUSE = 3 #  sec
 AUTOPLAY_START_DELAY = 5 #sec
 SHOW_SECS = False
@@ -134,7 +135,7 @@ def new_particles(px: int, py: int) -> list[Particle]:
     return ps
 
 def autoplay_calculate_time(x: str) -> float:
-    return AUTOPLAY_NL_PAUSE if x == '\n' else (len(x) + 2) / AUTOPLAY_SPEED
+    return AUTOPLAY_NL_PAUSE if x == '\n' else (len(x) + 2) / per_minute_to_per_sec(AUTOPLAY_SPEED)
 
 def draw_error(screen: pygame.Surface, t: float, w: int, h: int):
     x = time.time() - t
@@ -146,12 +147,27 @@ def draw_error(screen: pygame.Surface, t: float, w: int, h: int):
         pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
         screen.blit(shape_surf, rect)
 
+def draw_speed(screen: pygame.Surface, t: float, w: int, h: int):
+    x = time.time() - t
+    alpha = 255 / ((1 + x)**3)
+    color = (ERROR_COLOR[0], ERROR_COLOR[1], ERROR_COLOR[2], alpha)
+    rect = (0, 0, w, h)
+    if alpha >= 1:
+        # shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
+        text = f"autoplay speed: {round(per_minute_to_per_sec(AUTOPLAY_SPEED), 2)} chars/sec"
+        label = load_font("monospace", h//50, False, False).render(text, 10, fg)
+        label.set_alpha(alpha)
+        padding = h//4
+        screen.blit(label, (w/2-label.get_width()/2,padding-label.get_height()/2))
+        # screen.blit(shape_surf, label.get_rect())
+
 
 if __name__ == '__main__':
     filepath = ""
     tokens = []
     file_open = False
     error_time = 0
+    show_speed_time = 0
     if len(argv) >= 2:
         filepath = argv[1]
         try:
@@ -246,6 +262,8 @@ if __name__ == '__main__':
                 remaining_time_label = load_font("monospace", h//75, False, False).render(remaining_time(tokens, i, ap_wait_time, ap_last_time), 10, fg)
                 screen.blit(remaining_time_label, (w/2-remaining_time_label.get_width()/2,padding*1.25 + autoplay_label.get_height()))
             
+            draw_speed(screen, show_speed_time, w, h)
+
             draw_error(screen, error_time, w, h)
 
             pygame.display.update()
@@ -309,6 +327,13 @@ if __name__ == '__main__':
                         i = int(len(tokens)*0.65)
                         while fprogress(tokens, i) < 0.9:
                             i+=1
+                    elif event.key == pygame.K_s:
+                        down = pygame.key.get_pressed()
+                        if down[pygame.K_LSHIFT] or down[pygame.K_RSHIFT]:
+                            AUTOPLAY_SPEED = max(1, AUTOPLAY_SPEED-1)
+                        else:
+                            AUTOPLAY_SPEED += 1
+                        show_speed_time = time.time()
                     else:
                         i = (i+1) % len(tokens)
                 elif event.type == pygame.DROPFILE:
@@ -322,7 +347,7 @@ if __name__ == '__main__':
             
             if autoplay:
                 elapsed_time = time.time() - ap_last_time
-                if elapsed_time <= 1.0/AUTOPLAY_SPEED:
+                if elapsed_time <= 1.0/per_minute_to_per_sec(AUTOPLAY_SPEED):
                     fg, bg = BACKGROUND_COLOR, FOREGROUND_COLOR
                 else:
                     fg, bg = FOREGROUND_COLOR, BACKGROUND_COLOR
