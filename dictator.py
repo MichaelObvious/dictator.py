@@ -7,7 +7,7 @@ import time
 import pygame
 
 FPS = 30
-MIN_TOKEN_LENGTH = 5
+MIN_TOKEN_LENGTH = 7
 
 per_minute_to_per_sec = lambda x: x/60.0
 AUTOPLAY_SPEED = 80 # chars per min
@@ -82,13 +82,15 @@ def load_tokens(filepath: str) -> list[str]:
     tokens = []
     current_token = ""
     while j < len(words):
+        token_len = 0
         first = True
-        while j < len(words) and words[j] != '\n' and len(current_token) < MIN_TOKEN_LENGTH:
+        while j < len(words) and words[j] != '\n' and token_len < MIN_TOKEN_LENGTH:
             if first:
                 first = False
             else:
                 current_token += ' '
             current_token += words[j]
+            token_len += len(words[j])
             j += 1
         tokens.append(current_token)
         current_token = ""
@@ -279,6 +281,13 @@ if __name__ == '__main__':
                     elif event.key == pygame.K_r:
                         tokens = load_tokens(filepath)
                         i = min(i, len(tokens)-1)
+                    elif event.key == pygame.K_s:
+                        down = pygame.key.get_pressed()
+                        if down[pygame.K_LSHIFT] or down[pygame.K_RSHIFT]:
+                            AUTOPLAY_SPEED = max(1, AUTOPLAY_SPEED-1)
+                        else:
+                            AUTOPLAY_SPEED += 1
+                        show_speed_time = time.time()
                     elif event.key == pygame.K_SPACE:
                         autoplay = not autoplay
                         ap_last_time = time.time()
@@ -327,13 +336,8 @@ if __name__ == '__main__':
                         i = int(len(tokens)*0.65)
                         while fprogress(tokens, i) < 0.9:
                             i+=1
-                    elif event.key == pygame.K_s:
-                        down = pygame.key.get_pressed()
-                        if down[pygame.K_LSHIFT] or down[pygame.K_RSHIFT]:
-                            AUTOPLAY_SPEED = max(1, AUTOPLAY_SPEED-1)
-                        else:
-                            AUTOPLAY_SPEED += 1
-                        show_speed_time = time.time()
+                    elif event.key == pygame.K_F3:
+                        SHOW_SECS = not SHOW_SECS
                     else:
                         i = (i+1) % len(tokens)
                 elif event.type == pygame.DROPFILE:
